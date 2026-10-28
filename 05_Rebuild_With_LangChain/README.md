@@ -7,11 +7,9 @@ components and comparing it with your own | Demo**
 
 ## Goal
 
-Rebuild the search of Labs 01 and 02 with LangChain and check it against your own, question by question. The moment
-that teaches it: both searches find the right paragraph for all 30 questions, yet they return different chunks for
-every one of them, because a LangChain default returns four chunks where your search returns three, and the overall
-score cannot show it. Compare a framework with your own code question by question, not by a total. Parts E to H
-(self-study) rebuild the answer step, a metadata filter and the module the next labs use, with the same comparison.
+Rebuild our plain Python RAG pipeline with LangChain and check which behaviour is preserved. Compare retrieval results question by question, generate cited answers from shared evidence, and use metadata to scope a customer's search.
+
+The first comparison shows why this matters: both searches find a labelled source for every development question, yet their complete result lists differ because one returns an extra chunk. A total alone hides the default that changed the evidence. Parts A–D compare retrieval; Parts E–H continue with answers, product filtering and the reusable pipeline.
 
 ## What you will learn
 
@@ -25,8 +23,9 @@ score cannot show it. Compare a framework with your own code question by questio
   can differ from your own.
 - How to leave documents out of a search with a metadata filter.
 
-**In class:** Parts A, C and D, shown as a demo, with the `lc_embeddings()` cell at the start of Part B, which
-builds the embeddings Part C's store uses. The rest of Part B and Parts E to H are self-study.
+**In class:** Part A, Part B through Checkpoint B, then Parts C and D, shown as a demo. Part B first uses
+`OpenAIEmbeddings` directly, then introduces the shared helper. The remaining embedding comparison in Part B and
+Parts E to H are self-study.
 
 ## Coming from
 
@@ -36,43 +35,40 @@ your own questions, step by step, so you know what changed before you build on i
 
 ## What you will do
 
-**Part A: Turn the chunks into documents.** One chunk record as a `Document` by hand, then all 277.
-**Part B: Build the embeddings from the settings.** `lc_embeddings()` read and used; then, as self-study, the same
-vector as Lab 01's `embed()` and the token IDs LangChain sends in place of the text.
-**Part C: Index the documents and search with scores.** `InMemoryVectorStore`, and one question searched by both
-pipelines.
-**Part D: Check the two searches on 30 questions.** hit@3, the per-question lists, the default `k=4` found in the
-signature, its cost in tokens, and the same lists once `k=3` is set.
-**Part E: Get a cited answer with `with_structured_output` (self-study).** `ChatOpenAI` by hand, then `lc_chat_model()`;
-a Pydantic class for Lab 02's schema and how the two schemas differ in text; a cited answer checked with
-`quote_found()`.
-**Part F: Check the two answer steps on 30 questions (self-study).** Both answer steps given the same evidence lines;
-refusals, claims and quotes in both pipelines, a second run as a control, the Moon question, and the comparison table.
-**Part G: Leave documents out with a metadata filter (self-study).** A question that names no product, answered with
-and without an Atlas-only filter.
-**Part H: Keep the pipeline in `shared/lc_pipeline.py` (self-study).** The same steps as functions, the baseline for
-the next labs, and what each pipeline gives its answer step: `pack()`'s lines (Labs 02 and 04) against `evidence()`'s
-(Labs 06 to 11).
-**Challenge.** Check a retriever against your own search. Optional: write a filter for a Boreal customer.
+**Part A: Represent Our Chunks as LangChain Documents.** Inspect an original dictionary, map its text, ID and metadata to one `Document`, then convert all 277 records.
+
+**Part B: Configure LangChain Embeddings and Compare Their Vectors.** Construct `OpenAIEmbeddings` directly, embed one question and two short policy statements, then use `lc_embeddings()` to reuse the configuration. As self-study, compare with Lab 01's `embed()` and distinguish input token IDs from output vectors.
+
+**Part C: Store Document Embeddings and Retrieve Similar Chunks.** Embed the documents into `InMemoryVectorStore`, then compare one search's returned objects, IDs, scores and row counts with our plain search.
+
+**Part D: Compare Retrieval Results and Check Search Defaults.** Compare all 30 question results, find the default `k=4`, measure the extra content tokens, and check retrieval again with an explicit `k=3`.
+
+**Part E: Generate Cited Answers as Structured Python Objects (self-study).** Inspect a chat reply, describe claims with Pydantic, generate a `CitedAnswer`, and reuse our quote check.
+
+**Part F: Compare Answer Behaviour Using the Same Evidence (self-study).** Give both answer steps identical lines, inspect differing replies, repeat the plain implementation as a control, and test abstention.
+
+**Part G: Restrict Retrieval to the Customer's Product (self-study).** Use the customer's product to filter eligible documents, then compare evidence and answers for the same question.
+
+**Part H: Reuse the LangChain Pipeline and Compare Its Evidence (self-study).** Run the shared pipeline, then compare its three-document evidence with the earlier budgeted five-hit pack.
+
+**Challenge.** Compare a retriever against our search. Optional: scope retrieval to Boreal and test a question its policy cannot answer.
 
 ## Checkpoints
 
 | After | You should see |
 |---|---|
 | Part A | 277 documents; H05 with `version` and `access` in its metadata |
-| Part B | `send token IDs: True`; as self-study, 1,536 numbers with largest difference from `embed()` 0.000000, and the question as eight token IDs `[644, 1148, ...]` |
+| Part B | direct `OpenAIEmbeddings` usage: one vector for a question, two for the document list (1,536 values each under the default model); helper `send token IDs: True`; as self-study, 1,536 numbers with largest difference from `embed()` 0.000000, and the question as eight token IDs `[644, 1148, ...]` |
 | Part C | the same top three for the Tesla question, scores within a thousandth; the store prints a fourth row |
-| Part D | hit@3 30 and 30 of 30; same lists 0 of 30; `k: int = 4`; 9,946 evidence tokens against 7,764; with `k=3`, same lists 30 of 30, largest score difference 0.0007 |
+| Part D | initial source-hit counts 30 and 30 of 30 (three results vs four); same lists 0 of 30; `k: int = 4`; 9,946 evidence tokens against 7,764; with `k=3`, same lists 30 of 30, largest score difference 0.0021 |
 | Part E | `temperature: 0.0`; the same required fields as Lab 02's `SCHEMA`, with `$defs` and `title` in Pydantic's; *Nikola Tesla was born in the year 1856.*, quote found |
-| Part F | both refuse 0 of 30 and every quote is found (31 and 32 claims); same cited IDs 29 of 30, same text 29 of 30 (plain against itself 30 of 30); the Moon question abstained 3 of 3 in each |
+| Part F | both refuse 0 of 30 and every quote is found (30 and 32 claims); same cited IDs 28 of 30, same text 28 of 30 (plain against itself 30 of 30); the Moon question abstained 3 of 3 in each |
 | Part G | without the filter H02, H04, H01 and both products' times; with `atlas_only` H02, H01, H05 and Atlas only, 3 of 3 |
 | Part H | the module: Tesla with its quote found, *Insufficient evidence.* for the Moon; `pack()` 125 lines and 10,761 tokens, `evidence()` 90 lines and 8,382 tokens, more lines from `pack()` for 23 of 30 |
 
-**About the saved outputs.** They come from `gpt-4o-mini` and `text-embedding-3-small`. Model replies vary from run to
-run, so compare the pattern (the counts and which checks pass), not every word. Parts A to D and H give the same
-lists, counts and tokens every run. Part F's wording moves: the two pipelines gave the same text for about 28 of 30
-questions, and two runs of the same pipeline for 26 to 30 of 30. So compare two pipelines against a second run of one
-of them, on one model.
+**About the saved outputs.** They come from `gpt-4o-mini` and `text-embedding-3-small`. Embedding scores can move
+slightly, and model replies can change in wording, citations and refusal behaviour. Compare the returned evidence and
+check results, using a repeated run of one implementation to put differences between implementations in context.
 
 ## Before you start
 
@@ -98,6 +94,8 @@ reasoning model, a dictionary schema without a name, and a filter that reads a f
   every search method, its defaults and the filter argument
 - [LangChain reference: `OpenAIEmbeddings`](https://reference.langchain.com/python/langchain-openai/embeddings/base/OpenAIEmbeddings):
   `check_embedding_ctx_length` and the settings for other OpenAI-compatible servers
+- [LangChain: OpenAIEmbeddings integration](https://docs.langchain.com/oss/python/integrations/embeddings/openai):
+  constructing the embeddings object and calling `embed_query()` and `embed_documents()` directly
 - [Pydantic: models](https://docs.pydantic.dev/latest/concepts/models/): fields, validation and `model_dump()`
 
 Next: [Lab 06](../06_Evaluation_Set/README.md) (build an evaluation set). Back to [the lab list](../README.md).

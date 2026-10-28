@@ -1,21 +1,18 @@
 # Lab 08: How to improve retrieval with hybrid search and reranking
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tatwan/rag_for_nlp/blob/main/08_Hybrid_Search_And_Reranking/08_hybrid_search_and_reranking.ipynb)
+**CPU | API key: `OPENAI_API_KEY` (embedding and chat calls) | Practises: comparing retrieval changes | In class**
 
-**CPU | API key: `OPENAI_API_KEY` (embedding and chat calls) | Practises: testing a retrieval change on paired
-questions, with its cost | In class**
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tatwan/rag_for_nlp/blob/main/08_Hybrid_Search_And_Reranking/08_hybrid_search_and_reranking.ipynb)
 
 ## Goal
 
-Add keyword search and a reranker to the vector search, and decide from a question-by-question comparison whether
-each change helps. The moment that teaches it: **hybrid search**, a common design that runs a keyword search beside
-the vector search and merges the two lists, gains one of the 30 development questions at rank 1 and loses three, a split that
-chance explains as well as a real effect. Then one model call reads the candidates for a customer's question that
-both searches and their merge rank wrong, and puts the answering policy first.
+Build a keyword search and a reranker beside the existing vector search, then decide whether either change earns
+its cost. You will see keyword matching rescue one question, fusion lower another, and a chat model reorder a policy
+question's candidates correctly while sometimes returning invalid IDs.
 
-You can now measure the pipeline question by question and know how far to trust a judge. What you cannot yet say
-is whether a common retrieval change, keyword search or a reranker, makes this pipeline better: this lab tries
-both and decides from the questions each one gains and loses.
+Lab 06 gave us a fixed question set and separate retrieval and answer measures. Lab 07 showed why a judge needs
+checking too. Here we change the retrieval order and measure the gains and losses on the same questions. A better
+rank is useful only if the retrieved text supports the answer we need.
 
 ## What you will learn
 
@@ -29,78 +26,80 @@ both and decides from the questions each one gains and loses.
 **In class:** Parts B to D, then Part E up to Checkpoint E (one rerank call). Part A, the ID check after
 Checkpoint E, and Parts F to H are self-study.
 
+
 ## Coming from
 
-Lab 05 rebuilt the pipeline with LangChain and made its vector store the baseline; Lab 06 builds an evaluation set and
-Lab 07 checks a judge against your labels. This lab changes one stage, retrieval, and measures each change against
-Lab 05's baseline on the same questions, one row per question.
+Lab 05 demonstrates the LangChain Documents, embeddings and vector store reused here. Lab 06 explains known-support
+ranks and golden records; Lab 07 separates a model's verdict from the evidence behind it. Here we compare retrieval
+orders on the same questions. We inspect candidate text because a source hit or valid ID list does not establish
+that an answer is factually supported.
 
 ## What you will do
 
-**Part A: Score the five policies with BM25 by hand (self-study).** The BM25 formula in plain Python, the words each
-policy shares with a paraphrased question, then `bm25s` set up to give the same order.
-**Part B: Search the corpus with BM25.** Dense and sparse retrieval, the BM25 formula read term by term, a BM25 index of
-the 277 records beside the vector store, the MVP question, and both searches on the 30 questions.
-**Part C: Fuse the two lists with reciprocal rank fusion.** The RRF formula, a three-item example by hand, `rrf()`, and
-why fusion pushes the Norman answer down.
-**Part D: Compare hybrid search with the baseline, question by question.** The paired table at hit@3 and hit@1, the
-moved questions, and the sign test as a formula and in code.
-**Part E: Rerank the candidates with a chat model.** Two-stage retrieval, where the recovery question's answer sits in
-each list, one listwise rerank call with `RERANK_MODEL` that puts it first, and its tokens and seconds. Self-study at
-the end: the check that the reply holds exactly the candidate IDs.
-**Part F: Rerank the 30 questions and count the cost (self-study).** Every reply checked, one question repeated five
-times, the paired table, the lost question read, and the cost per question.
-**Part G: Try both changes on Atlas questions and decide (self-study).** Five Atlas questions from Labs 04 and 06, then
-the decision table and line.
-**Part H: Keep the pieces in `shared/hybrid.py` (self-study).** The module read and checked against the hand versions.
-**Going further.** Maximal marginal relevance on the store.
-**Challenge.** Repair a rejected ranking. Optional: check whether the candidate order sways the reranker.
+| Part | What it establishes |
+|---|---|
+| A: Score the five policies with BM25 by hand (self-study) | Inspect policy texts, calculate a word's contribution and compare direct `bm25s` scores with the hand formula. |
+| B: Compare keyword and vector rankings on the same corpus | Read the MVP candidates, construct and search a BM25 index, then keep each of 30 questions aligned with its source ranks. |
+| C: Combine rankings and trace why fusion can lower an answer | Work a small RRF sum, explain `c=60` and depth 10, then inspect the Norman question's candidates and moved source. |
+| D: Compare hybrid search with the baseline, question by question | Reconcile totals with the paired table, inspect gains/losses and interpret a sign test with its assumptions. |
+| E: Let a chat model reorder the recovery question’s candidates | Inspect question/passage inputs, use structured output directly and interpret one rerank call. The candidate-permutation check after Checkpoint E is self-study. |
+| F: Compare validated rerankings and measure their added cost (self-study) | Separate proposed order from fallback, inspect invalid IDs, repeat one fixed query and measure the 30-question comparison's tokens and time. |
+| G: Inspect policy questions before choosing a retrieval change (self-study) | Read five policy questions and the distinctions their candidates must preserve, then write a decision with its limits. |
+| H: Reuse the demonstrated search and comparison functions (self-study) | Read `shared/hybrid.py` and compare it with the direct calls and functions already demonstrated. |
+
+Going further uses maximal marginal relevance (MMR) to select less repetitive candidates. The challenge repairs a
+rejected ranking; an optional task tests candidate-order sensitivity on the same recovery query.
 
 ## Checkpoints
 
-| After | You should see |
-|---|---|
-| Part A | H01 1.705, H02 1.519, H04 1.412; H02 shares `['atlas', 'the']`; `bm25s` ratio 2.20 for every policy |
-| Part B | 4,083 distinct words; for the MVP question vector ranks the answer 2nd, BM25 1st (9.805); vector hit@1 29, hit@3 30; BM25 22 and 28 |
-| Part C | A 0.032522, B 0.032266, C 0.016129; the Norman answer fourth with 0.0164 |
-| Part D | hybrid hit@1 27, hit@3 29; hit@3 lost 1 (Norman); hit@1 gained 1, lost 3; p = 1.000 and 0.625 |
-| Part E | H02 at rank 3 (vector), 6 (BM25), 4 (hybrid); reranked `H02`, `H01`, `H04`; 561 tokens in; self-study: `exactly the candidate IDs: True` |
-| Part F | 28 of 30 replies pass (the Tesla reply names `S03-P00-C01`, an ID not in the corpus); the Saxon Garden question fails 4 of 5 repeats; hit@1 gained 1 (MVP), lost 1; 961 tokens and about 1,600 ms per question against about 230 ms for the vector search |
-| Part G | right first: vector 3 of 5, hybrid 3 of 5, reranked 4 of 5; the mobile-app reply fails the check (left out `['H03']`) |
-| Part H | same BM25 and fused lists 30 of 30; p = 0.625; `['H02', 'H01', 'H04']` |
+These describe the student notebook's saved outputs. The reranker's exact replies and timings can vary.
 
-**About the saved outputs.** They come from `gpt-4o-mini` and `text-embedding-3-small`. BM25, fusion and the sign test
-give the same numbers every run; the vector search can move a score by a few thousandths; the reranker's replies vary.
-The rerank call in Part E put H02 first in every call we made (18 of 18). In Part F's 30-question pass, 0 to 3 replies
-fail the ID check per pass: most name a real chunk that was not a candidate, and one named an ID that does not exist.
-The dollar line uses the prices in `models.env`: change `CHAT_PRICE_INPUT` and `CHAT_PRICE_OUTPUT` when you change the
-model.
+| After | What to inspect |
+|---|---|
+| A | Hand scores H01 1.705, H02 1.519, H04 1.412; the library score differs by a constant factor of 2.20. |
+| B | 277 records and 4,083 distinct words; MVP's known source is vector rank 2 and BM25 rank 1. Vector hit@1: 29; hit@3: 30. BM25 hit@1: 22; hit@3: 28, all out of 30. |
+| C | A 0.032522, B 0.032266, C 0.016129 in the small example. Norman's labelled source falls to fourth after fusion. |
+| D | Hybrid hit@1/hit@3: 27/29, each out of 30. At hit@1: 26 both, 1 gained, 3 lost, 0 neither; p = 0.625. At hit@3: 0 gained, 1 lost; p = 1.000. |
+| E | H02 ranks 3, 6 and 4 before reranking (vector/BM25/hybrid), then first in the model order; 561 input and 54 output tokens. The ID permutation check returns True. |
+| F | 28 of 30 replies pass the ID check; the five repeats of one Saxon Garden query fail four times. At hit@1 the validated/fallback policy gains MVP and loses the computational measure. Reranking averages 961 input tokens, 74 output tokens and 1,617 ms per question. |
+| G | Known policy first: vector 3/5, hybrid 3/5, reranked/fallback 4/5. The mobile-app proposal starts with H01 but omits H03, so fallback retains H04. |
+| H | Exact BM25 and fused ID-list equality for 30/30 questions; p = 0.625 both ways; the additional recovery call puts H02 first and passes validation. |
+
+The 30 development questions share five articles, and the five policy cases are closely related. Paired rows
+show which outcomes changed. A large p-value does not establish equivalence, and repeated calls on one question
+do not create independent questions. These are development comparisons rather than deployment reliability estimates.
+
+**About the saved outputs.** They use `gpt-4o-mini` and `text-embedding-3-small`. Checkpoints interpret the displayed
+results; model replies, similarity scores and timings can vary. The dollar estimate uses your configured prices and
+covers reranking calls only. Read invalid replies and changed candidate texts before judging the totals.
 
 ## Before you start
 
-- **Lab 00 first,** then Lab 05: this lab uses `shared/lc_pipeline.py` as the baseline.
-- **Open the notebook:** on Colab with the badge above (add `OPENAI_API_KEY` under Secrets first); locally or in a
-  codespace, open `08_hybrid_search_and_reranking.ipynb` and choose the `.venv` kernel. Run Setup and Config first.
-- **Data:** `data/squad-chunks.json`, `data/support-case.json` and `data/development-questions.json`, read in place.
-- **Packages:** `bm25s` and LangChain's core packages, already installed by Lab 00's setup.
-- **Cost:** one embedding of the corpus (about 21,000 tokens) and about 40 rerank calls of about 1,000 tokens each,
-  well under one US cent on `gpt-4o-mini`.
+- Run Lab 00's pre-check and read Lab 05's direct library examples. Packages include `bm25s` and LangChain's core components.
+- Open `08_hybrid_search_and_reranking.ipynb`, select the project `.venv` kernel and run Setup and Config. On Colab, use the badge and add `OPENAI_API_KEY` under Secrets.
+- The corpus uses `data/squad-chunks.json` and `data/support-case.json`. The 30 question labels are in `data/development-questions.json`; answer-key fields stay with the evaluator.
+- Through Part H, there are 42 rerank calls, plus five for the optional shuffle challenge. Corpus and query embeddings also incur usage; repeated cells make new calls. The in-class reranking demonstration makes one chat call.
 
-The notebook ends with a troubleshooting table: `bm25s` defaults that change the order, a `k` larger than the index,
-JSON mode without the word JSON, and `REASONING_EFFORT` sent to a reranker that does not take it.
+Part F's saved estimate is 0.19 US dollars per 1,000 reranked questions, projected from the 30 calls at the configured
+prices. It excludes indexing, embedding charges, answer generation, infrastructure and provider-specific discounts.
+Change the prices when you change the rerank model or provider. Search timers use already-built indexes and do not
+measure full end-to-end answer latency.
+
+The notebook ends with troubleshooting for tokenizer defaults, an oversized `k`, JSON mode and model settings.
 
 ## Resources
 
-- [`bm25s`](https://github.com/xhluca/bm25s): the BM25 package, its tokenizer options and scoring variants
-- [Okapi BM25](https://en.wikipedia.org/wiki/Okapi_BM25): the formula, IDF, `k1` and `b`
+- [`bm25s` documentation](https://bm25s.github.io/): the BM25 package, its tokenizer options and scoring variants
+- [Stanford IR book: Okapi BM25](https://nlp.stanford.edu/IR-book/html/htmledition/okapi-bm25-a-non-binary-model-1.html): term weighting, IDF, `k1` and `b`
 - [Cormack, Clarke and Büttcher (2009)](https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf): reciprocal rank
   fusion and `c = 60`
-- [Sign test](https://en.wikipedia.org/wiki/Sign_test): the test on the questions that moved
 - [Elasticsearch: reciprocal rank fusion](https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion)
-  and [Qdrant: hybrid queries](https://qdrant.tech/documentation/concepts/hybrid-queries/): hybrid search in a search
-  engine and a vector database
+  and [Qdrant: hybrid queries](https://qdrant.tech/documentation/concepts/hybrid-queries/): hybrid search inside a
+  search engine and a vector database
 - [Sun and others (2023), RankGPT](https://arxiv.org/abs/2304.09542): listwise reranking with a chat model
 - [Cohere: rerank overview](https://docs.cohere.com/docs/rerank-overview): a production cross-encoder reranker
 
 Next: [Lab 09: How to answer follow-up questions with retrieval](../09_Follow_Up_Questions/README.md). Back to
 [the lab list](../README.md).
+
+- [LangChain models: structured output](https://docs.langchain.com/oss/python/langchain/models#structured-output): parsed and raw replies from a model.

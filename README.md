@@ -15,7 +15,7 @@ keeps what it built in `shared/`, so you can open any lab on its own.
 | [02 Cited answers](02_Cited_Answers/README.md) | Answer with quoted sources or refuse, check the citations in code, and see what the checks miss | A to D |
 | [03 Chunking](03_Chunking_With_Lineage/README.md) | Load a Markdown page and a PDF and keep where each line came from, split documents so a rule keeps its exception, and choose a chunking from measurements | A |
 | [04 Trace and diagnose](04_Trace_And_Diagnose/README.md) | Trace every question and find the stage where an answer failed | A, D |
-| [05 Rebuild with LangChain](05_Rebuild_With_LangChain/README.md) | Rebuild the same pipeline with LangChain, compare it with your own code step by step, and find the defaults that make its answers differ | A, C, D (demo) |
+| [05 Rebuild with LangChain](05_Rebuild_With_LangChain/README.md) | Rebuild the same pipeline with LangChain, compare it with your own code step by step, and find the defaults that make its answers differ | A, B through Checkpoint B, C, D (demo) |
 | [06 Evaluation set](06_Evaluation_Set/README.md) | Write a golden set and score retrieval and answers per question | A to D |
 | [07 LLM judge](07_LLM_Judge_Calibration/README.md) | Label answers yourself, then check a judge against your labels | B to E |
 | [08 Hybrid search and reranking](08_Hybrid_Search_And_Reranking/README.md) | Add BM25, rank fusion and a reranker, and decide from paired results | B to E |

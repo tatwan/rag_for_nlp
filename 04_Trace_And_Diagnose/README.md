@@ -39,12 +39,13 @@ Lab 05 then rebuilds the same pipeline with LangChain.
 tokens billed and the stamp in one record.
 **Part B: Trace every question (self-study).** The prompt hash, Part A's steps as a function, and a run on the 30
 development questions and four Atlas questions written for this lab.
-**Part C: Screen the answers (self-study).** An exact-match screen against the expected answer strings, and the
-answers it flags.
-**Part D: Find the stage where the support was lost.** The flagged answers read first, then a stage table that
-follows the supporting passage through the corpus, the hits, the pack and the answer.
-**Part E: Give the model only the labelled passage (self-study).** Oracle context on the three failures, and the
-abstention line tested on its own.
+**Part C: Screen the answers (self-study).** Check whether an expected phrase appears as whole words, inspect the
+flagged answers, and see why a pass or failure still needs judgement.
+**Part D: Find the stage where the support was lost.** Read the flagged answers, map chunk IDs to source IDs, then
+follow the labelled support through the corpus, hits and pack. The first failed check tells us where to investigate.
+**Part E: Give the model only the labelled passage (self-study).** Test the flagged questions with their labelled
+passages alone, read valid paraphrases the screen rejects, and compare the temporary-account answers with and without
+the abstention instruction.
 **Part F: Save the baseline in `shared/trace.py` (self-study).** The trace step as a module, and the 30 development
 questions traced once, saved and read back.
 **Challenge.** Find the packed line that misled the model. Optional: name the stage in three traces written by hand.
