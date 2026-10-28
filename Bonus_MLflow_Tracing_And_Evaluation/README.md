@@ -49,10 +49,26 @@ mkdir -p .cache/mlflow-bonus
 python -m mlflow server --host 127.0.0.1 --port 5057 --backend-store-uri sqlite:///.cache/mlflow-bonus/mlflow.db --artifacts-destination .cache/mlflow-bonus/artifacts
 ```
 
-On **Ubuntu**, use the same steps. In **Codespaces**, use the uv steps in its terminal, forward port 5057 privately
-in the **Ports** panel and open its forwarded URL. The notebook still connects to `127.0.0.1:5057` inside the
-codespace. If the server rejects the forwarded hostname, restart it with `--allowed-hosts` set to the exact
-hostname from that private forwarded URL, alongside `localhost,127.0.0.1`.
+On **Ubuntu**, use the same steps.
+
+In **GitHub Codespaces**, use [`bonus_mlflow_codespaces.ipynb`](bonus_mlflow_codespaces.ipynb) instead: the same lab
+without the Colab cells. Your browser reaches the server through a forwarded address such as
+`https://<codespace-name>-5057.app.github.dev`, and MLflow refuses an address it does not know, so the server needs
+two more settings. In a codespace terminal at the repository root:
+
+```bash
+uv sync --group mlflow
+mkdir -p .cache/mlflow-bonus
+UI_HOST="$CODESPACE_NAME-5057.$GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN"
+uv run --group mlflow mlflow server --host 127.0.0.1 --port 5057 \
+  --backend-store-uri sqlite:///.cache/mlflow-bonus/mlflow.db \
+  --artifacts-destination .cache/mlflow-bonus/artifacts \
+  --allowed-hosts "$UI_HOST,localhost:5057,127.0.0.1:5057" \
+  --cors-allowed-origins "https://$UI_HOST"
+```
+
+The notebook's Set up section explains both settings. Keep port 5057 private in the **Ports** panel, and open the UI
+from the link the notebook prints.
 
 On **Colab**, use the badge and add `OPENAI_API_KEY` in Secrets. Setup installs the bonus dependencies and starts
 the server inside the runtime. Part A opens Colab's port-proxy window; your laptop's localhost cannot reach that
