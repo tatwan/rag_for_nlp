@@ -1,0 +1,23 @@
+// Explanatory view of create_agent with ModelCallLimitMiddleware; runtime Mermaid lists the compiled hooks.
+// Render: dot -Tpng -Gdpi=150 agent-loop.dot -o agent-loop.png
+digraph AgentLoop {
+  graph [rankdir=TB, bgcolor="white", pad="0.35", nodesep="0.6", ranksep="0.55", label="One question: model calls and tool results", labelloc=t, fontname="Archivo", fontsize=24, fontcolor="#0B1220"];
+  node [shape=box, style="rounded,filled", fillcolor="#F2F4F7", color="#0B1220", fontname="Archivo", fontsize=18, margin="0.20,0.14"];
+  edge [color="#47505F", fontcolor="#47505F", fontname="Archivo", fontsize=16, arrowsize=0.8];
+  start [label="Question", fillcolor="#D9DDFA"];
+  guard [shape=diamond, label="4 model calls\nalready used?", fillcolor="#D9DDFA"];
+  model [label="Call the model"];
+  choice [shape=diamond, label="Tool calls\nin reply?"];
+  tools [label="Execute allowed searches\nReturn one ToolMessage per request", fillcolor="#E6F8B0"];
+  stop [label="End with limit notice", fillcolor="#FBEBD9", color="#B45309"];
+  answer [label="End with model reply", fillcolor="#E6F8B0"];
+  start -> guard;
+  guard -> stop [label="yes"];
+  guard -> model [label="no"];
+  model -> choice;
+  choice -> answer [label="no"];
+  choice -> tools [label="yes"];
+  tools -> guard [label="append results; next round", constraint=false];
+  {rank=same; stop; guard;}
+  {rank=same; answer; choice; tools;}
+}

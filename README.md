@@ -24,6 +24,7 @@ keeps what it built in `shared/`, so you can open any lab on its own.
 | [11 Release gate](11_Release_Gate/README.md) | Filter by permission, update a policy, and stop a change that fails a release test | A, B |
 | [Capstone](Capstone_RAG_Service/README.md) | Put the system behind a small web page with its release gate | Self-study |
 | [Bonus](Bonus_Agentic_Search/README.md) | Let the model decide when to search | Self-study |
+| [Bonus: MLflow tracing and evaluation](Bonus_MLflow_Tracing_And_Evaluation/README.md) | Connect the search, evidence, trace and scoring concepts in one MLflow workflow | Bonus |
 | [Optional A: LlamaIndex](Optional_LlamaIndex_Pipeline/README.md) | Build the same pipeline with LlamaIndex and find the defaults it sets for you (its own environment) | Self-study |
 | [Optional B: Managed file search](Optional_Managed_File_Search/README.md) | Try a managed search service instead of your own index, and see what it hides (OpenAI only) | Self-study |
 | [Final challenge: rescue a failing assistant](Challenge_Rescue_A_Failing_Assistant/README.md) | Take one failing question, find the stage, change it, and show the before-and-after on all 38 golden records | Optional, after Lab 11 |

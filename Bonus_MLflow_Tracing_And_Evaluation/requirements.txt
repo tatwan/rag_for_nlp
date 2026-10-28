@@ -1,0 +1,3 @@
+# Install from the repository root.
+-r ../requirements.txt
+mlflow==3.17.2

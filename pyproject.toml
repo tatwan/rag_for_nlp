@@ -18,6 +18,7 @@ dependencies = [
 ]
 
 [dependency-groups]
+mlflow = ["mlflow==3.17.2"]
 capstone = ["gradio>=6,<7"]
 # The optional LlamaIndex lab installs its packages in its own environment: llama-index-llms-openai requires
 # openai<3, and a group here would hold every lab's lock to openai 2.x.
